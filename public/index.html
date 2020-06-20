@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>King (card game) by Bruno</title>
+<link rel="stylesheet" href='style.css'></link>
+</head>
+<body>
+
+<h1>King by Bruno</h1>
+<button type="submit" onClick="connect()">Entrar na sala</button>
+<p id='roundNumber'>Jogo não iniciado</p>
+<button type='button' onclick='updateScreen()'>Update</button>
+<br>
+<br>
+<div class="row">
+  <div class="column" style="background-color:#aaa;">
+    Jogador 1
+    <div id="jogador1">
+    </div>
+  </div>
+  <div class="column" style="background-color:#bbb;">Jogador 2
+    <div id="jogador2">
+    </div>
+  </div>
+  <div class="column" style="background-color:#ccc;">Jogador 3
+    <div id="jogador3">
+    </div>
+  </div>
+  <div class="column" style="background-color:#ddd;">Jogador 4
+    <div id="jogador4">
+    </div>
+  </div>
+</div>
+<br>
+
+<p id='turnCaption'>Jogo não iniciado</p>
+
+
+<h2>Mesa</h2>
+<div id="board">
+</div>
+
+<script src="app.js"></script>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io.connect('http://localhost:5000');
+  socket.on('connected', (data) => {
+    console.log(data);
+  });
+
+  socket.on('update_screen', updateScreen)
+
+  function connect(){
+    socket.emit('enter_game', {
+      name: "Bruno Botelho"
+    })
+  }
+
+  function updateScreen(data){
+    console.log(data)
+  }
+
+</script>
+</script>
+
+
+<script>
+let playersMap = ['jogador1', 'jogador2', 'jogador3', 'jogador4']
+let jogoIniciado = false
+
+function renderScreen(roundNumber, playerTurnName,boardPlayCards, playersWithHands){
+  if (!jogoIniciado){
+    return
+  }
+  updateCaptionPlayerTurn(playerTurnName)
+  updateCaptionRoundNumber(roundNumber)
+  showList('board', boardPlayCards, 'Mesa:')
+  for (let i=0; i<playersWithHands.length; i++){
+    playersWithHands[i].hand.sort((y, x)=> y.suit.localeCompare(x.suit))
+
+    showList('jogador'+(i+1).toString(), playersWithHands[i].hand, 'Mão de ' + playersWithHands[i].name, i)
+  }
+}
+
+function updateCaptionPlayerTurn (playerName) {
+  let playerTurnCaption = document.getElementById('turnCaption')
+  playerTurnCaption.innerText = 'Vez de ' + playerName
+}
+function updateCaptionRoundNumber (playerName) {
+  let playerTurnCaption = document.getElementById('roundNumber')
+  playerTurnCaption.innerText = 'Rodada ' + playerName
+}
+
+function start(){
+  jogoIniciado = true
+}
+
+function showList(element, list, desc, player=-1) {
+    var html = '<p>'+desc+'</p>'
+    html += '<ul>';
+    if (player===getCurrentPlayer().idx || player===-1)
+      for(var i=0; i<list.length; i++) {
+          if (list[i]){
+            html += '<li>id: ' + i+' - '+ list[i].suit + ' '+ list[i].rank +"<button type='button' id='"+i+"' onclick='playCardClick("+i+")'>+</button>" +'</li>';
+          }
+      };
+    html += '</ul>';
+    document.getElementById(element).innerHTML = html
+}
+
+function playCardClick(index){
+  playCard(index)
+}
+
+</script>
+
+</body>
+</html>
