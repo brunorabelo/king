@@ -6,14 +6,19 @@
   "type": "module",
   "dependencies": {
     "express": "^4.17.1",
+    "nodemon": "^2.0.4",
     "socket.io": "^2.3.0",
     "xstate": "^4.10.0"
   },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  },
   "devDependencies": {
-    "nodemon": "^2.0.4"
+    "mocha": "^8.0.1"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/mocha/bin/mocha && exit 1"
   },
   "author": "",
   "license": "ISC"
