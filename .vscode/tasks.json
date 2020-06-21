@@ -1,0 +1,14 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "nvm",
+      "command": "npm", // Could be any other shell command
+      "args": [
+        "run",
+        "nvm"
+      ],
+      "type": "shell"
+    }
+  ]
+}
