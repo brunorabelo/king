@@ -1,5 +1,6 @@
 export default function createTrick(
   round,
+  trickNumber,
   starterPlayerIdx,
   onPlayerPlayed,
   onTrickStarted,
@@ -12,16 +13,16 @@ export default function createTrick(
   }
   const trick = {
     round: round,
-    number: 0,
+    number: trickNumber,
     starterPlayerIdx: starterPlayerIdx,
     cardPlays: new Object(),
     playerTurnIdx: starterPlayerIdx - 1,
     winnerIdx: -1,
-
   };
 
   function start() {
     nextPlayerTurn();
+    actions.trickStarted(trick)
   }
 
   function nextPlayerTurn() {
@@ -54,7 +55,7 @@ export default function createTrick(
     return winner;
   }
 
-  function checkValidCard(playerHand, card, roundRestriction) {
+  function getValidPlayOrError(playerHand, card, roundRestriction) {
     const firstCardAlreadyPlayed = trick.cardPlays[trick.starterPlayerIdx];
     if (!firstCardAlreadyPlayed && roundRestriction(playerHand, card)) {
       return true;
@@ -79,15 +80,16 @@ export default function createTrick(
   }
 
   function playCard(card) {
-    trick.cardPlays[playerTurnIdx] = card;
-    actions.playerPlayed(playerIdx, card)
+    trick.cardPlays[trick.playerTurnIdx] = card;
+    actions.playerPlayed(trick.playerTurnIdx, card);
     nextPlayerTurn();
   }
 
   return {
     trick,
     start,
-    checkValidCard,
+    getValidPlayOrError,
+    checkTrickWinnerPlayerId,
     playCard,
   };
 }

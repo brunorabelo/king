@@ -9,7 +9,18 @@ const io = socketIo(server);
 app.use(express.static("public"));
 app.use("/jquery", express.static("./node_modules/jquery/dist/"));
 server.listen(5000);
-const game = createGame(onGameStarted, onGameFinished, onPlayersUpdated, onRoundStarted, onRoundFinished, onTrickStarted, onTrickFinished, onPlayerPlayed);
+const game = createGame(
+  onGameStarted,
+  onGameFinished,
+  onPlayersUpdated,
+  onRoundStarted,
+  onRoundFinished,
+  onTrickStarted,
+  onTrickFinished,
+  onPlayerPlayed
+);
+
+const socketMap = {};
 
 io.on("connection", (socket) => {
   const userId = socket.id;
@@ -17,6 +28,7 @@ io.on("connection", (socket) => {
 
   socket.on("enter_game", (data) => {
     const playerName = data.name;
+    socketMap[socket.id] = socket;
     console.log(data, "entrou no jogo");
     const res = game.addPlayer(socket.id, data.name);
     if (res.error) {
@@ -24,19 +36,20 @@ io.on("connection", (socket) => {
     }
     socket.emit("entered_game");
     socket.on("disconnect", (data) => {
+      delete socketMap[socket.id];
       game.removePlayer(socket.id);
       console.log(playerName, "saiu do jogo");
     });
   });
 
   socket.on("start_game", (data) => {
+    if (game.state.started) return;
     game.start();
   });
 
-  socket.on('play_card', (data)=>{
-    game.playCard(socket.id, data.cardIdx)
-  })
-
+  socket.on("play_card", (data) => {
+    game.playCard(socket.id, data.cardIdx);
+  });
 });
 
 function onPlayersUpdated() {
@@ -48,13 +61,14 @@ function onPlayersUpdated() {
     io.sockets.emit("players_updated", game.state.players);
   }
 }
+
 function onGameStarted() {
   for (let i = 0; i < game.state.players.length; i++) {
     const sendingPlayer = game.state.players[i];
     if (sendingPlayer.robot) {
       continue;
     }
-    io.socket.to(sendingPlayer.id).emit("game_started", game.state.players);
+    socketMap[sendingPlayer.id].emit("game_started", game.state.players);
   }
 }
 
@@ -65,11 +79,12 @@ function onRoundStarted(round) {
       continue;
     }
     const roundNumber = round.number;
-    const players = game.state.players.map(
-      (x, idx) => new { ...x, cards: round.playersHands[idx].length }()
-    );
+    const players = game.state.players.map((x, idx) => ({
+      ...x,
+      cards: round.playersHands[idx].length,
+    }));
     const playerHand = round.playersHands[i];
-    io.socket.to(player.id).emit("round_started", {
+    socketMap[player.id].emit("round_started", {
       roundInfo: {
         number: roundNumber,
         name: round.name || "Rodada " + roundNumber,
@@ -88,10 +103,10 @@ function onRoundFinished(round) {
     }
     const roundNumber = round.number;
     const players = game.state.players.map(
-      (x, idx) => new { ...x, cards: round.playersHands[idx].length }()
+      (x, idx) => ({ ...x, cards: round.playersHands[idx].length })
     );
     const playerHand = round.playersHands[i];
-    io.socket.to(player.id).emit("round_finished", {
+    socketMap[player.id].emit("round_finished", {
       roundInfo: {
         number: roundNumber,
         name: round.name || "Rodada " + roundNumber,
@@ -110,7 +125,7 @@ function onTrickStarted(trick) {
     }
     const trickNumber = trick.number;
     const starterPlayerIdx = trick.starterPlayerIdx;
-    io.socket.to(player.id).emit("trick_started", {
+    socketMap[player.id].emit("trick_started", {
       trickNumber,
       starterPlayerIdx,
     });
@@ -125,7 +140,7 @@ function onTrickFinished(trick) {
     }
     const trickNumber = trick.number;
     const winnerPlayerIdx = trick.winnerIdx;
-    io.socket.to(player.id).emit("trick_finished", {
+    socketMap[player.id].emit("trick_finished", {
       trickNumber,
       winnerPlayerIdx,
     });
@@ -138,7 +153,7 @@ function onPlayerPlayed(player, card) {
     if (sendingPlayer.robot) {
       continue;
     }
-    io.socket.to(sendingPlayer.id).emit("player_played", {
+    socketMap[sendingPlayer.id].emit("player_played_card", {
       player,
       card,
     });
@@ -157,6 +172,6 @@ function onGameFinished() {
     if (sendingPlayer.robot) {
       continue;
     }
-    io.socket.to(sendingPlayer.id).emit("game_finished", result);
+    socketMap[sendingPlayer.id].emit("game_finished", result);
   }
 }

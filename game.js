@@ -16,6 +16,7 @@ export default function createGame(
   const deck = createDeck();
   const actions = {
     gameStarted: function () {
+      state.started = true;
       onGameStarted();
     },
     gameFinished: function () {
@@ -36,6 +37,7 @@ export default function createGame(
     },
     onTrickStarted: function (trick) {
       onTrickStarted(trick);
+      autoPlayIfBot();
     },
     onTrickFinished: function (trick) {
       onTrickFinished(trick);
@@ -49,6 +51,7 @@ export default function createGame(
   const state = {
     rounds: [],
     players: [],
+    started: false,
   };
 
   function addPlayer(id, name) {
@@ -87,7 +90,7 @@ export default function createGame(
 
   function start() {
     fillMissingPlayersWithBots(state.players);
-    state.players = shuffle(state.players);
+    // state.players = shuffle(state.players);
     actions.gameStarted();
     startNextRound();
   }
@@ -104,6 +107,7 @@ export default function createGame(
     const roundNumber = state.rounds.length + 1;
     const round = createRound(
       deck,
+      state,
       roundNumber,
       listeners.onPlayerPlayed,
       listeners.onRoundStarted,
@@ -121,13 +125,13 @@ export default function createGame(
   }
 
   function getCurrentPlayer() {
-    const currentTrick = getCurrentRound().getCurrentTrick();
+    const currentTrick = getCurrentRound().getCurrentTrick().trick;
     const playerTurnIdx = currentTrick.playerTurnIdx;
     const round = currentTrick.round;
     return {
       ...state.players[playerTurnIdx],
       idx: playerTurnIdx,
-      hand: round.state.playersHands[playerTurnIdx],
+      hand: round.playersHands[playerTurnIdx],
     };
   }
 
@@ -147,14 +151,14 @@ export default function createGame(
 
   function playCard(playerId, index) {
     const error = getValidPlayOrError(playerId, index);
-    if (error) {
+    if (error !== true) {
       console.error(error);
       return error;
     }
     const currentRound = getCurrentRound();
     const playerIdx = getCurrentPlayer().idx;
     currentRound.playCard(playerIdx, index);
-    // autoPlayIfBot();
+    autoPlayIfBot();
   }
 
   function autoPlayIfBot() {
@@ -163,12 +167,12 @@ export default function createGame(
     if (!player.robot) {
       return;
     }
-    const hand = currentRound.state.playersHands[player.idx];
+    const hand = currentRound.round.playersHands[player.idx];
     const numberCardsInHand = hand.length;
     const handIdxs = [...Array(numberCardsInHand).keys()];
     const shuffledIdxs = shuffle(handIdxs);
     const cardIdx = shuffledIdxs.find(
-      (idx) => currentRound.getValidPlayOrError(idx) === true
+      (idx) => currentRound.getValidPlayOrError(player.idx, idx) === true
     );
     playCard(player.id, cardIdx);
   }

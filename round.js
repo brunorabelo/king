@@ -3,6 +3,7 @@ import createTrick from "./trick.js";
 
 export function createRound(
   deck,
+  game,
   roundNumber,
   onPlayerPlayed,
   onRoundStarted,
@@ -12,13 +13,17 @@ export function createRound(
 ) {
   const numberOfPlayers = 4;
   const round = {
+    game: game,
     number: roundNumber,
     playersHands: shuffleAndDistribute(deck, numberOfPlayers),
     tricks: [],
   };
   const actions = {
     roundStarted: onRoundStarted,
-    roundFinished: onRoundFinished,
+    roundFinished: function (round) {
+      updatePontuation();
+      onRoundFinished(round);
+    },
   };
   const listeners = {
     onPlayerPlayed: function (playerIdx, card) {
@@ -35,6 +40,7 @@ export function createRound(
 
   function start() {
     const starterRoundPlayerIdx = (roundNumber * 1 - 1) % 4;
+    actions.roundStarted(round);
     startNextTrick(starterRoundPlayerIdx);
   }
 
@@ -43,8 +49,10 @@ export function createRound(
       actions.roundFinished(round);
       return;
     }
+    const trickNumber = round.tricks.length + 1;
     const trick = createTrick(
       round,
+      trickNumber,
       starterPlayerIdx,
       listeners.onPlayerPlayed,
       listeners.onTrickStarted,
@@ -54,14 +62,15 @@ export function createRound(
     trick.start();
   }
 
+  function listCardsOfTricks(tricks) {
+    let cards = tricks.map((x) => Object.values(x.trick.cardPlays));
+    let cardList = cards.reduce((a, b) => a.concat(b), []);
+    return cardList;
+  }
+
   function checkRoundIsFinished() {
-    const listCards = function (tricks) {
-      let cards = tricks.map((x) => Object.values(x.cardPlays));
-      let cardList = cards.reduce((a, b) => a.concat(b), []);
-      return cardList;
-    };
     const defaultRule = (x) => x.length >= 52;
-    const cardList = listCards(round.tricks);
+    const cardList = listCardsOfTricks(round.tricks);
     const roundFInishedRules = {
       1: defaultRule,
       2: (x) => x.filter((x) => x.suit === "heart").length >= 13,
@@ -76,12 +85,8 @@ export function createRound(
     return roundRule(cardList);
   }
 
-  function updatePontuation(players) {
-    const listCards = function (tricks) {
-      let cards = tricks.map((x) => Object.values(x.cardPlays));
-      let cardList = cards.reduce((a, b) => a.concat(b), []);
-      return cardList;
-    };
+  function updatePontuation() {
+    const players = round.game.players;
     let playersTricks = [[], [], [], []];
     const roundPontuationRules = {
       1: (x) => x.length * -20,
@@ -117,8 +122,8 @@ export function createRound(
     function fillPlayerTricks(tricks) {
       for (let i = round.number === 5 ? 11 : 0; i < tricks.length; i++) {
         const trick = tricks[i];
-        const winnerIdx = checkTrickWinnerPlayerId(trick);
-        playersTricks[winnerIdx].push(listCards([trick]));
+        const winnerIdx = trick.checkTrickWinnerPlayerId();
+        playersTricks[winnerIdx].push(listCardsOfTricks([trick]));
       }
     }
     fillPlayerTricks(round.tricks);
@@ -143,9 +148,9 @@ export function createRound(
   }
 
   function playCard(playerIdx, index) {
-    const playerHand = playersHands[playerIdx];
-    playerHand.splice(index, 1);
-    getCurrentTrick().playCard(playerIdx, index);
+    const playerHand = round.playersHands[playerIdx];
+    const card = playerHand.splice(index, 1)[0];
+    getCurrentTrick().playCard(card);
   }
 
   function getCurrentTrick() {
@@ -153,10 +158,9 @@ export function createRound(
     return tricks[tricks.length - 1];
   }
 
-  function getValidPlayOrError(cardIdx) {
+  function getValidPlayOrError(playerIdx, cardIdx) {
     const currentTrick = getCurrentTrick();
-    const playerIdx = currentTrick.playerTurnIdx;
-    let playerHand = playersHands[playerIdx].hand;
+    let playerHand = round.playersHands[playerIdx];
     if (!playerHand[cardIdx]) {
       const error = {
         error: "index inválido",
