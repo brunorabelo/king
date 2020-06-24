@@ -8,7 +8,11 @@ const gameController = createGameController(
   onRoundFinished,
   onTrickStarted,
   onTrickFinished,
-  onPlayerPlayed
+  onPlayerPlayed,
+  onWrongMove,
+  onSuccessMove,
+  onNextPlayerTurn,
+  onReceiveGameState
 );
 
 const error = $("#error");
@@ -151,14 +155,17 @@ function onGameStarted(data) {
 function onGameFinished() {}
 function onRoundStarted(data) {
   const { playerHand, players, roundInfo } = data;
-  debugger
   state.players = players;
   state.myHand = playerHand;
   state.roundInfo = roundInfo;
   render();
 }
 function onRoundFinished(data) {
-  debugger
+}
+
+function onNextPlayerTurn(playerIdx){
+  state.playerTurn = playerIdx
+  render()
 }
 
 function displayTrickInfo(trickNumber) {
@@ -186,9 +193,21 @@ function onPlayerPlayed(data) {
 }
 
 function playCardClick(idx) {
-  state.myHand.splice(idx, 1)
   gameController.playCard(idx);
-  render()
+}
+
+function onWrongMove(result){
+  console.error(result)
+}
+function onSuccessMove(idx){
+  state.myHand.splice(idx, 1);
+  render();
+}
+
+function onReceiveGameState(data){
+
+
+  // render();
 }
 
 enterGameBtn.click(() => {

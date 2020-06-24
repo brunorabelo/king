@@ -1,0 +1,96 @@
+{
+  "python.linting.pylintArgs": [
+    "--load-plugins=pylint_django",
+    "--disable=C0111"
+  ],
+  "debug.allowBreakpointsEverywhere": true,
+  "window.titleBarStyle": "custom",
+  "telemetry.enableCrashReporter": false,
+  "telemetry.enableTelemetry": false,
+  "workbench.startupEditor": "newUntitledFile",
+  "[python]": {
+    "editor.rulers": [
+      120
+    ]
+  },
+  "[html]": {
+    "editor.detectIndentation": false,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "vetur.format.defaultFormatter.js": "vscode-typescript",
+  "vetur.format.defaultFormatter.html": "js-beautify-html",
+  "javascript.format.insertSpaceBeforeFunctionParenthesis": true,
+  "eslint.validate": [
+    "vue",
+    "html",
+    "javascript"
+  ],
+  "editor.fontFamily": "'Fira Code Retina', Monaco, 'Courier New', monospace",
+  "editor.acceptSuggestionOnEnter": "on",
+  "window.zoomLevel": 0,
+  "editor.multiCursorModifier": "ctrlCmd",
+  "editor.snippetSuggestions": "top",
+  "editor.formatOnPaste": true,
+  "emmet.showSuggestionsAsSnippets": false,
+  "emmet.includeLanguages": {
+    "erb": "html",
+    "HTML (Eex)": "html"
+  },
+  "explorer.confirmDragAndDrop": false,
+  "editor.wordWrap": "on",
+  "workbench.editor.enablePreviewFromQuickOpen": false,
+  "editor.fontLigatures": true,
+  "workbench.colorTheme": "Atom One Dark",
+  "terminal.integrated.fontSize": 13,
+  "explorer.confirmDelete": false,
+  "editor.tabSize": 2,
+  "git.autofetch": true,
+  "breadcrumbs.enabled": true,
+  "files.exclude": {
+    "**/.nuxt": true,
+    "**/node_modules": true
+  },
+  "files.trimTrailingWhitespace": true,
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "scope": [
+          //following will be in italic (=FlottFlott)
+          "comment",
+          "entity.name.type.class", //class names
+          "keyword", //import, export, return…
+          "constant", //String, Number, Boolean…, this, super
+          "storage.modifier", //static keyword
+          "storage.type.class.js", //class keyword
+        ],
+        "settings": {
+          "fontStyle": "italic"
+        }
+      },
+      {
+        "scope": [
+          //following will be excluded from italics (VSCode has some defaults for italics)
+          "invalid",
+          "keyword.operator",
+          "constant.numeric.css",
+          "keyword.other.unit.px.css",
+          "constant.numeric.decimal.js",
+          "constant.numeric.json"
+        ],
+        "settings": {
+          "fontStyle": ""
+        }
+      }
+    ]
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "editor.fontSize": 13,
+  "diffEditor.ignoreTrimWhitespace": false,
+  "[json]": {},
+  "[javascript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "launch": {}
+}

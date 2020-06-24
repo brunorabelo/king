@@ -17,7 +17,8 @@ const game = createGame(
   onRoundFinished,
   onTrickStarted,
   onTrickFinished,
-  onPlayerPlayed
+  onPlayerPlayed,
+  onNextPlayerTurn
 );
 
 const socketMap = {};
@@ -47,8 +48,9 @@ io.on("connection", (socket) => {
     game.start();
   });
 
-  socket.on("play_card", (data) => {
-    game.playCard(socket.id, data.cardIdx);
+  socket.on("play_card", (data, callback) => {
+    const result = game.playCard(socket.id, data.cardIdx);
+    callback(result)
   });
 });
 
@@ -69,6 +71,18 @@ function onGameStarted() {
       continue;
     }
     socketMap[sendingPlayer.id].emit("game_started", game.state.players);
+  }
+  setInterval(()=>{sendGameState()}, 3000)
+}
+
+function sendGameState(){
+  const  currentState = game.getCurrentState()
+  for (let i = 0; i < game.state.players.length; i++) {
+    const sendingPlayer = game.state.players[i];
+    if (sendingPlayer.robot) {
+      continue;
+    }
+    socketMap[sendingPlayer.id].emit("game_state", currentState);
   }
 }
 
@@ -102,9 +116,10 @@ function onRoundFinished(round) {
       continue;
     }
     const roundNumber = round.number;
-    const players = game.state.players.map(
-      (x, idx) => ({ ...x, cards: round.playersHands[idx].length })
-    );
+    const players = game.state.players.map((x, idx) => ({
+      ...x,
+      cards: round.playersHands[idx].length,
+    }));
     const playerHand = round.playersHands[i];
     socketMap[player.id].emit("round_finished", {
       roundInfo: {
@@ -158,6 +173,19 @@ function onPlayerPlayed(player, card) {
       card,
     });
   }
+}
+
+function onNextPlayerTurn(playerIdx){
+  for (let i = 0; i < game.state.players.length; i++) {
+    const sendingPlayer = game.state.players[i];
+    if (sendingPlayer.robot) {
+      continue;
+    }
+    socketMap[sendingPlayer.id].emit("next_player_turn", {
+      playerIdx,
+    });
+  }
+  game.autoPlayIfBot();
 }
 
 function onGameFinished() {

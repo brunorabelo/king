@@ -4,13 +4,15 @@ export default function createTrick(
   starterPlayerIdx,
   onPlayerPlayed,
   onTrickStarted,
-  onTrickFinished
+  onTrickFinished,
+  onNextPlayerTurn
 ) {
   const actions = {
     trickStarted: onTrickStarted,
     trickFinished: onTrickFinished,
-    playerPlayed: onPlayerPlayed
-  }
+    playerPlayed: onPlayerPlayed,
+    nextPlayerTurn: onNextPlayerTurn
+  };
   const trick = {
     round: round,
     number: trickNumber,
@@ -32,6 +34,7 @@ export default function createTrick(
       return;
     }
     trick.playerTurnIdx = (trick.playerTurnIdx + 1) % 4;
+    actions.nextPlayerTurn(trick.playerTurnIdx)
   }
 
   function checkTrickIsFinished() {
