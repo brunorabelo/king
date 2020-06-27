@@ -3,9 +3,9 @@ export default class Controller {
     this.view = view;
     this.model = model;
 
-    view.bindClickEnterRoom(this.enterRoom.bind(this));
-    view.bindClickStartGame(this.startGame.bind(this));
-    view.bindClickCard(this.playCard.bind(this));
+    view.bindClickEnterRoom(this.handleEnterRoom.bind(this));
+    view.bindClickStartGame(this.handleStartGame.bind(this));
+    view.bindClickCard(this.handleClickCard.bind(this));
 
     this.model.startGameEvent.addListener(() => {
       this.view.startGame();
@@ -33,7 +33,7 @@ export default class Controller {
     });
   }
 
-  enterRoom(playerName) {
+  handleEnterRoom(playerName) {
     this.model.enterRoom(
       {
         playerName,
@@ -48,7 +48,7 @@ export default class Controller {
     );
   }
 
-  startGame(params) {
+  handleStartGame(params) {
     this.model.startGame(
       {
         idx,
@@ -63,8 +63,8 @@ export default class Controller {
     );
   }
 
-  playCard(idx) {
-    this.moedl.playCard(
+  handleClickCard(idx) {
+    this.model.playCard(
       {
         idx,
       },

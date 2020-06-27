@@ -11,13 +11,6 @@ class Model {
     this.trickNumber = null;
     this.roundInfo = null;
 
-    // this.startGameEvent = new Event();
-    // this.finishGameEvent = new Event();
-    // this.startRoundEvent = new Event();
-    // this.finishRoundEvent = new Event();
-    // this.startTrickEvent = new Event();
-    // this.finishTrickEvent = new Event();
-    // this.playerPlayEvent = new Event();
     this.cardPlayedEvent = new Event(); //user, card
     this.discardCardEvent = new Event(); //idx
     this.nextPlayerTurnEvent = new Event(); //playerTurn
@@ -30,14 +23,18 @@ class Model {
     this.closePontuationEvent = new Event(); //setInterval
     this.finishGameEvent = new Event();
 
-    this.api.bindGameStarted(this.gameStarted.bind(this));
-    this.api.bindGameFinished(this.gameFinished.bind(this));
-    this.api.bindRoundStarted(this.roundStarted.bind(this));
-    this.api.bindRoundFinished(this.roundFinished.bind(this));
-    this.api.bindTrickStarted(this.trickStarted.bind(this));
-    this.api.bindTrickFinished(this.trickFinished.bind(this));
-    this.api.bindPlayerPlayed(this.playerPlayed.bind(this));
-    this.api.bindGameStateReceived(this.gameStateReceived.bind(this));
+    this.api.updatedPlayersEvent.addListener(this.updatedPlayers.bind(this));
+    this.api.gameStartedEvent.addListener(this.gameStarted.bind(this));
+    this.api.gameFinishedEvent.addListener(this.gameFinished.bind(this));
+    this.api.roundStartedEvent.addListener(this.roundStarted.bind(this));
+    this.api.roundFinishedEvent.addListener(this.roundFinished.bind(this));
+    this.api.trickStartedEvent.addListener(this.trickStarted.bind(this));
+    this.api.trickFinished.addListener(this.trickFinished.bind(this));
+    this.api.playerPlayedEvent.addListener(this.playerPlayed.bind(this));
+    this.api.receivedGameStateEvent.addListener(
+      this.gameStateReceived.bind(this)
+    );
+
     // Object.defineProperty(this, "players", {
     //   get: function () {
     //     return players;
@@ -50,9 +47,21 @@ class Model {
     //   },
     // });
   }
+
+  updatedPlayers(paras) {}
+  gameStarted(paras) {}
+  gameFinished(paras) {}
+  roundStarted(paras) {}
+  roundFinished(paras) {}
+  trickStarted(paras) {}
+  trickFinished(paras) {}
+  playerPlayed(paras) {}
+  gameStateReceived(paras) {}
+
   setGameState(gameState) {}
   gameStateReceived(gameState) {
     //verificar estado salvo e estado recebido
+    const different = false;
     if (different) {
       this.setGameState(gameState);
       this.renderAllAgain.trigger(gameState);
@@ -65,6 +74,7 @@ class Model {
         this.discardCardEvent.trigger(idx);
         this.myHand.splice(idx);
       } else {
+        const error = result?.error || "Erro desconhecido";
       }
     });
   }

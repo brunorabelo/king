@@ -1,4 +1,4 @@
-import Event from "./event.js";
+import Event from "../helpers/event.js";
 
 class ServerAPI {
   constructor() {
@@ -12,16 +12,10 @@ class ServerAPI {
     this.trickStartedEvent = new Event();
     this.trickFinished = new Event();
     this.playerPlayedEvent = new Event();
-    this.wrongMoveEvent = new Event();
-    this.successMoveEvent = new Event();
     this.nextPlayerTurnEvent = new Event();
     this.receveidGameStateEvent = new Event();
 
     this.listen();
-  }
-
-  bindGameStarted(handle) {
-    this.gameStartedEvent.addListener(handle);
   }
 
   listen() {
